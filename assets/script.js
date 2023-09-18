@@ -5,7 +5,7 @@ $(document).ready(function() {
 
 function clockUpdate() {
   var date = new Date();
-  
+
   function addZero(x) {
     if (x < 10) {
       return x = '0' + x;
@@ -24,7 +24,7 @@ function clockUpdate() {
     }
   }
 
-  var h = addZero(twelveHour(date.getHours()));
+  var h = addZero(date.getHours());
   var m = addZero(date.getMinutes());
   var s = addZero(date.getSeconds());
 

@@ -46,9 +46,11 @@
 
 			function qrcodeUpdate() {
 				$('#qrcode').qrcode({
+					width: 600,
+					height: 600,
 					text: "http://jetienne.com"
 				});	
-				
+
 				$.ajax({
 					url: '/path/to/file',
 					type: 'GET',

@@ -16,6 +16,9 @@
 
 		<script>
 			$(document).ready(function() {
+				var wHeight = $(window).height(),
+					qrHeight = 70 * wHeight / 100;
+
 				// init clock
 				clockUpdate();
 				setInterval(clockUpdate, 1000);
@@ -46,8 +49,8 @@
 
 			function qrcodeUpdate() {
 				$('#qrcode').qrcode({
-					width: 600,
-					height: 600,
+					width: qrHeight,
+					height: qrHeight,
 					text: "http://jetienne.com"
 				});	
 

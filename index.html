@@ -7,10 +7,15 @@
 
 		<script type="text/javascript" src="assets/jquery.qrcode.min.js"></script>
 		<script type="text/javascript" src="assets/qrcode.js"></script>
+
+		<style type="text/css">
+			.digital-clock {  }
+			#qrcode { position: fixed; right: 10px; bottom: 10px; }
+		</style>
 	</head>
 	<body>
 
-		<div id="clock" class="digital-clock">00:00:00</div>
+		<div class="digital-clock"><span id="clock">00:00:00</span></div>
 		<div id="qrcode"></div>
 
 
@@ -22,6 +27,7 @@
 				console.log(qrHeight);
 
 				// init clock
+				$('.digital-clock').height(qrHeight);
 				clockUpdate();
 				setInterval(clockUpdate, 1000);
 

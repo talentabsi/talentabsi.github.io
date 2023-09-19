@@ -19,13 +19,15 @@
 				var wHeight = $(window).height(),
 					qrHeight = 70 * wHeight / 100;
 
+				console.log(qrHeight);
+
 				// init clock
 				clockUpdate();
 				setInterval(clockUpdate, 1000);
 
 				// init QR Code
-				qrcodeUpdate();
-				setInterval(qrcodeUpdate, 1000);
+				qrcodeUpdate(qrHeight, qrHeight);
+				setInterval(qrcodeUpdate(qrHeight, qrHeight), 1000);
 
 			});
 
@@ -47,10 +49,11 @@
 				$('#clock').text(h + ':' + m + ':' + s);
 			}
 
-			function qrcodeUpdate() {
+			function qrcodeUpdate(width, height) {
+
 				$('#qrcode').qrcode({
-					width: qrHeight,
-					height: qrHeight,
+					width: width,
+					height: height,
 					text: "http://jetienne.com"
 				});	
 

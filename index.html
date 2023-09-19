@@ -9,7 +9,7 @@
 		<script type="text/javascript" src="assets/qrcode.js"></script>
 
 		<style type="text/css">
-			.digital-clock {  }
+			.digital-clock { font-size: 200px; position: fixed; left: 10px; bottom: 10px; width: 100%; }
 			#qrcode { position: fixed; right: 10px; bottom: 10px; }
 		</style>
 	</head>
@@ -24,10 +24,11 @@
 				var wHeight = $(window).height(),
 					qrHeight = 70 * wHeight / 100;
 
-				console.log(qrHeight);
-
 				// init clock
-				$('.digital-clock').height(qrHeight);
+				$('.digital-clock').css({
+					height: qrHeight + 'px',
+					padding-right: (qrHeight + 10) + 'px'
+				});;
 				clockUpdate();
 				setInterval(clockUpdate, 1000);
 

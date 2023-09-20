@@ -9,34 +9,85 @@
 		<script type="text/javascript" src="assets/qrcode.js"></script>
 
 		<style type="text/css">
-			.digital-clock { font-size: 200px; position: fixed; left: 10px; bottom: 10px; width: 100%; }
-			#qrcode { position: fixed; right: 10px; bottom: 10px; }
+			.logo { margin-top: 30px; }
+			.day-date { 
+				font-size: 160px; 
+				line-height: 1.2; 
+				text-align: center; 
+				position: fixed; 
+				left: 0px; 
+				bottom: 50px; 
+				width: 100%;
+			}
+			.day-date p { margin: 30px; }
+			.day-date p#day { text-transform: uppercase; }
+			.digital-clock { font-size: 300px; font-weight: bold; position: absolute; right: 30px; top: 0px; }
+			/*.digital-clock span { display: block; position: absolute; top: 50%; transform: translateY(-50%); }*/
+			#qrcode { position: fixed; right: 50px; bottom: 50px; }
+
+			@media screen and (max-width: 1366px) {
+				.day-date { font-size: 140px; }
+				.day-date #day { font-size: 150px; }
+				.digital-clock { font-size: 200px;  }
+			}
 		</style>
 	</head>
 	<body>
-
+		<div class="logo"><img src="assets/logo-bsi-uii.webp"></div>
 		<div class="digital-clock"><span id="clock">00:00:00</span></div>
+		<div class="day-date">
+			<p id="day"></p>
+			<p id="date"></p>
+		</div>
 		<div id="qrcode"></div>
 
-
 		<script>
+			var qrCodeCurrent;
+
 			$(document).ready(function() {
 				var wHeight = $(window).height(),
-					qrHeight = 70 * wHeight / 100;
+					qrHeight = 60 * wHeight / 100;
 
 				// init clock
-				$('.digital-clock').css({
+				$('.day-date').css({
 					'height': qrHeight + 'px',
-					'padding-right': (qrHeight + 10) + 'px'
+					
 				});
+				$('.day-date p').css({
+					'padding-right': (qrHeight + 50) + 'px'
+				});
+
+				dateUpdate();
+				setInterval(() => {
+					dateUpdate();
+				}, 1000 * 60 * 60);
+
 				clockUpdate();
-				setInterval(clockUpdate, 1000);
+				setInterval(() => {
+					clockUpdate();
+				}, 1000);
 
 				// init QR Code
 				qrcodeUpdate(qrHeight, qrHeight);
-				setInterval(qrcodeUpdate(qrHeight, qrHeight), 1000);
+				setInterval(() => {
+					qrcodeUpdate(qrHeight, qrHeight)
+				}, 1000 * 60 * 2);
 
 			});
+
+			function dateUpdate() {
+				var dayNameId = ['Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jum\'at', 'Sabtu'];
+				var monthNameId = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+				var date = new Date();
+
+				var day = date.getDay();
+				var d = date.getDate();
+				var m = date.getMonth();
+				var y = date.getFullYear();
+
+				$('#day').text(dayNameId[day]);
+				$('#date').text(d + ' ' + monthNameId[m] + ' ' + y);
+			}
 
 			function clockUpdate() {
 				var date = new Date();
@@ -57,30 +108,23 @@
 			}
 
 			function qrcodeUpdate(width, height) {
-
-				$('#qrcode').qrcode({
-					width: width,
-					height: height,
-					text: "http://jetienne.com"
-				});	
-
 				$.ajax({
-					url: '/path/to/file',
+					url: 'http://localhost:10114/wp-json/rest/qrcode',
 					type: 'GET',
 					dataType: 'json',
-					data: {param1: 'value1'},
+					data: { prefix: 'BSI', current: qrCodeCurrent }
 				})
-				.done(function() {
+				.done(function(response) {
 					console.log("success");
-					$('#qrcode').qrcode({
-						text: "http://jetienne.com"
+					qrCodeCurrent = response.data.text;
+					$('#qrcode').html('').qrcode({
+						width: width,
+						height: height,
+						text: response.data.text
 					});	
 				})
-				.fail(function() {
+				.fail(function(response) {
 					console.log("error");
-				})
-				.always(function() {
-					console.log("complete");
 				});
 			} 
 		</script>

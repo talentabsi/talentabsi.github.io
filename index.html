@@ -5,8 +5,8 @@
 
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
 
-		<script type="text/javascript" src="assets/jquery.qrcode.min.js"></script>
-		<script type="text/javascript" src="assets/qrcode.js"></script>
+		<!-- <script type="text/javascript" src="assets/jquery.qrcode.min.js"></script> -->
+		<script type="text/javascript" src="assets/html5-qrcode.min.js"></script>
 
 		<style type="text/css">
 			.logo { margin-top: 30px; }
@@ -33,101 +33,91 @@
 		</style>
 	</head>
 	<body>
-		<div class="logo"><img src="assets/logo-bsi-uii.webp"></div>
-		<div class="digital-clock"><span id="clock">00:00:00</span></div>
-		<div class="day-date">
-			<p id="day"></p>
-			<p id="date"></p>
-		</div>
-		<div id="qrcode"></div>
+		<div class="container-fluid">
+    <div id="qr-reader" class="mt-2" style="width:100%;"></div>
+  </div>
 
-		<script>
-			var qrCodeCurrent;
 
-			$(document).ready(function() {
-				var wHeight = $(window).height(),
-					qrHeight = 60 * wHeight / 100;
+  <script>
+    function docReady(fn) {
+      // see if DOM is already available
+      if (document.readyState === "complete" || document.readyState === "interactive") {
+        // call on next available tick
+        setTimeout(fn, 1);
+      } else {
+        document.addEventListener("DOMContentLoaded", fn);
+      }
+    }
 
-				// init clock
-				$('.day-date').css({
-					'height': qrHeight + 'px',
-					
-				});
-				$('.day-date p').css({
-					'padding-right': (qrHeight + 50) + 'px'
-				});
+    docReady(function() {
+      var lastMessage;
+      var codeId = 0;
+      function onScanSuccess(decodedText, decodedResult) {
+        /**
+         * If you following the code example of this page by looking at the
+         * source code of the demo page - good job!!
+         * 
+         * Tip: update this function with a success callback of your choise.
+         */
+        if (lastMessage !== decodedText) {
+          lastMessage = decodedText;
+          ++codeId;
+          
+          jQuery.ajax({
+            url: ajax_url,
+            type: 'POST',
+            dataType: 'json',
+            data: { action: 'presence_<?php echo $mode; ?>', qrcode: decodedText },
+          })
+          .done(function(response) {
+            console.log("success");
 
-				dateUpdate();
-				setInterval(() => {
-					dateUpdate();
-				}, 1000 * 60 * 60);
+            if (response.result) {
+              window.location.href = home_url;
+            } else {
+              alert(response.message);
+            }
+          })
+          .fail(function() {
+            console.log("error");
+          })
+          .always(function() {
+            console.log("complete");
+          });
+        }
+      }
+      var qrboxFunction = function(viewfinderWidth, viewfinderHeight) {
+        // Square QR Box, with size = 80% of the min edge.
+        var minEdgeSizeThreshold = 200;
+        var edgeSizePercentage = 0.75;
+        var minEdgeSize = (viewfinderWidth > viewfinderHeight) ?
+            viewfinderHeight : viewfinderWidth;
+        var qrboxEdgeSize = Math.floor(minEdgeSize * edgeSizePercentage);
+        if (qrboxEdgeSize < minEdgeSizeThreshold) {
+          if (minEdgeSize < minEdgeSizeThreshold) {
+            return {width: minEdgeSize, height: minEdgeSize};
+          } else {
+            return {
+              width: minEdgeSizeThreshold,
+              height: minEdgeSizeThreshold
+            };
+          }
+        }
+        return {width: qrboxEdgeSize, height: qrboxEdgeSize};
+      }
 
-				clockUpdate();
-				setInterval(() => {
-					clockUpdate();
-				}, 1000);
+      let html5QrcodeScanner = new Html5QrcodeScanner(
+        "qr-reader", 
+        { 
+            fps: 10,
+            qrbox: qrboxFunction,
+            rememberLastUsedCamera: true,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+        });
 
-				// init QR Code
-				qrcodeUpdate(qrHeight, qrHeight);
-				setInterval(() => {
-					qrcodeUpdate(qrHeight, qrHeight)
-				}, 1000 * 60 * 2);
-
-			});
-
-			function dateUpdate() {
-				var dayNameId = ['Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jum\'at', 'Sabtu'];
-				var monthNameId = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-				var date = new Date();
-
-				var day = date.getDay();
-				var d = date.getDate();
-				var m = date.getMonth();
-				var y = date.getFullYear();
-
-				$('#day').text(dayNameId[day]);
-				$('#date').text(d + ' ' + monthNameId[m] + ' ' + y);
-			}
-
-			function clockUpdate() {
-				var date = new Date();
-
-				function addZero(x) {
-					if (x < 10) {
-						return x = '0' + x;
-					} else {
-						return x;
-					}
-				}
-
-				var h = addZero(date.getHours());
-				var m = addZero(date.getMinutes());
-				var s = addZero(date.getSeconds());
-
-				$('#clock').text(h + ':' + m + ':' + s);
-			}
-
-			function qrcodeUpdate(width, height) {
-				$.ajax({
-					url: 'https://bsi.uii.ac.id/talenta/wp-json/rest/qrcode',
-					type: 'GET',
-					dataType: 'json',
-					data: { prefix: 'BSI', current: qrCodeCurrent }
-				})
-				.done(function(response) {
-					console.log("success");
-					qrCodeCurrent = response.data.text;
-					$('#qrcode').html('').qrcode({
-						width: width,
-						height: height,
-						text: response.data.text
-					});	
-				})
-				.fail(function(response) {
-					console.log("error");
-				});
-			} 
-		</script>
+      html5QrcodeScanner.render(onScanSuccess);
+    });
+  </script>
 
 	</body>
 </html>
